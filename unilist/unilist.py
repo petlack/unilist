@@ -14,6 +14,7 @@ from unilist.transformers import (
     PlaintextTransformer,
 )
 
+
 def identify_uri(uri):
     parsed_uri = urlparse(uri)
     if parsed_uri.scheme == 'http' or parsed_uri.scheme == 'https':
@@ -24,11 +25,13 @@ def identify_uri(uri):
         return VirtualResolver(uri, Unilist._config.get('virtual', {}))
     return LocalResolver(uri, Unilist._config.get('local', {}))
 
+
 def identify_transformer(uri):
     ext, compress = get_ext(uri)
     if ext == 'jsonl':
         return JsonlTransformer(Unilist._config.get('jsonl', {})), compress
     return PlaintextTransformer(Unilist._config.get('txt', {})), compress
+
 
 class Unilist:
     _config = {}
@@ -38,13 +41,15 @@ class Unilist:
         self.transformer, self.compress = identify_transformer(uri)
         self.resolver = identify_uri(uri)
         self.resolver.compress = self.compress
+
     def __iter__(self):
         yield from self.transformer.read(self.resolver.read())
 #     def read(self):
 #         return None
+
     def write(self, objs, **kwargs):
         return self.resolver.write(self.transformer.write(objs), **kwargs)
-    
+
     @classmethod
     def setup(cls, config):
         cls._config = {
