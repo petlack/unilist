@@ -15,7 +15,10 @@ def download_s3_file(uri, root_path, aws_bin):
 
 
 def read_http_file(url, **kwargs):
-    for line in requests.get(url).iter_lines():
+    res = requests.get(url)
+    if res.status_code > 200:
+        return []
+    for line in res.iter_lines():
         yield line.decode('utf-8')
 
 
