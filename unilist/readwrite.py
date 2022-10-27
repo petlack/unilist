@@ -39,9 +39,9 @@ def read_s3_file(uri, root_path='.', aws_bin='aws', **kwargs):
 def read_local_file(path, compress=False):
     if not file_exists(path) or not os.path.isfile(path):
         return []
-    ofn = gzip.open if compress else open
+    open_fn = gzip.open if compress else open
     omode = 'rt' if compress else 'r'
-    with ofn(path, omode) as f:
+    with open_fn(path, omode) as f:
         for line in f:
             yield line.rstrip()
 
@@ -49,11 +49,11 @@ def read_local_file(path, compress=False):
 def write_local_file(path, objs, append=False, buffer=10*1024, compress=False):
     total = 0
     ensure_parent_dir(path)
-    ofn = gzip.open if compress else open
+    open_fn = gzip.open if compress else open
     omode = 'wa' if append else 'w'
     omode = f'{omode}t' if compress else omode
     oargs = {} if compress else {'buffering': buffer}
-    with ofn(path, omode, **oargs) as f:
+    with open_fn(path, omode, **oargs) as f:
         for obj in objs:
             f.write(obj + '\n')
             total += len(obj.encode('utf-8')) + 1

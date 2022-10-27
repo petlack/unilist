@@ -17,11 +17,11 @@ from unilist.transformers import (
 
 def identify_uri(uri):
     parsed_uri = urlparse(uri)
-    if parsed_uri.scheme == 'http' or parsed_uri.scheme == 'https':
+    if parsed_uri.scheme in ['http', 'https']:
         return HTTPResolver(uri, Unilist._config.get('http', {}))
     if parsed_uri.scheme == 's3':
         return S3Resolver(uri, Unilist._config.get('s3', {}))
-    if parsed_uri.scheme != '':
+    if parsed_uri.scheme:
         return VirtualResolver(uri, Unilist._config.get('virtual', {}))
     return LocalResolver(uri, Unilist._config.get('local', {}))
 

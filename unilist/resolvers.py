@@ -19,14 +19,14 @@ class Resolver(ABC):
     def write(self, objs):
         return 0
 
-    def _rargs(self, kwargs={}):
+    def _read_args(self, kwargs={}):
         return {
             **self.config,
             **kwargs,
             'compress': self.compress,
         }
 
-    def _wargs(self, kwargs={}):
+    def _write_args(self, kwargs={}):
         return {
             **self.config,
             **kwargs,
@@ -36,39 +36,39 @@ class Resolver(ABC):
 
 class HTTPResolver(Resolver):
     def read(self):
-        kwargs = self._rargs()
+        kwargs = self._read_args()
         return rw.read_http_file(self.uri, **kwargs)
 
     def write(self, objs, **kwargs):
-        kwargs = self._wargs(kwargs)
+        kwargs = self._write_args(kwargs)
         return rw.write_http_file(self.uri, objs, **kwargs)
 
 
 class S3Resolver(Resolver):
     def read(self):
-        kwargs = self._rargs()
+        kwargs = self._read_args()
         return rw.read_s3_file(self.uri, **kwargs)
 
     def write(self, objs, **kwargs):
-        kwargs = self._wargs(kwargs)
+        kwargs = self._write_args(kwargs)
         return rw.write_s3_file(self.uri, objs, **kwargs)
 
 
 class VirtualResolver(Resolver):
     def read(self):
-        kwargs = self._rargs()
+        kwargs = self._read_args()
         return rw.read_virtual_file(self.uri, **kwargs)
 
     def write(self, objs, **kwargs):
-        kwargs = self._wargs(kwargs)
+        kwargs = self._write_args(kwargs)
         return rw.write_virtual_file(self.uri, objs, **kwargs)
 
 
 class LocalResolver(Resolver):
     def read(self):
-        kwargs = self._rargs()
+        kwargs = self._read_args()
         return rw.read_local_file(self.uri, **kwargs)
 
     def write(self, objs, **kwargs):
-        kwargs = self._wargs(kwargs)
+        kwargs = self._write_args(kwargs)
         return rw.write_local_file(self.uri, objs, **kwargs)
