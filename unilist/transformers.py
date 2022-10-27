@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
 import json
+from unilist.utils import get_ext
 
 
 @dataclass
@@ -36,3 +36,10 @@ class PlaintextTransformer(Transformer):
     def write(self, objs):
         for obj in objs:
             yield str(obj)
+
+
+def identify_transformer(uri, config):
+    ext, compress = get_ext(uri)
+    if ext == 'jsonl':
+        return JsonlTransformer(config.get('jsonl', {})), compress
+    return PlaintextTransformer(config.get('txt', {})), compress
