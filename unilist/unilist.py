@@ -3,7 +3,11 @@ from unilist.transformers import identify_transformer
 
 
 class Unilist:
-    _config = {}
+    _config = {
+        'http': {
+            'encoding': 'utf-8',
+        }
+    }
 
     def __init__(self, uri):
         self.uri = uri

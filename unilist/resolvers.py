@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from urllib.parse import urlparse
-
+import requests
 import unilist.readwrite as rw
+from unilist.errors import UnknownScheme, Unsupported
 from unilist.utils import file_exists
 
 
@@ -39,11 +40,16 @@ class Resolver(ABC):
 class HTTPResolver(Resolver):
     def read(self):
         kwargs = self._read_args()
-        return rw.read_http_file(self.uri, **kwargs)
+        encoding = kwargs.get('encoding')
+
+        res = requests.get(self.uri)
+        if res.status_code > 200:
+            return []
+        for line in res.iter_lines():
+            yield line.decode(encoding)
 
     def write(self, objs, **kwargs):
-        kwargs = self._write_args(kwargs)
-        return rw.write_http_file(self.uri, objs, **kwargs)
+        raise Unsupported('write operation is not supported for HTTP(S)')
 
 
 class S3Resolver(Resolver):
@@ -87,11 +93,30 @@ class S3Resolver(Resolver):
 class VirtualResolver(Resolver):
     def read(self):
         kwargs = self._read_args()
-        return rw.read_virtual_file(self.uri, **kwargs)
+
+        uri_parsed = urlparse(self.uri)
+        roots = kwargs.get('roots', {})
+
+        if uri_parsed.scheme not in roots:
+            raise UnknownScheme(
+                f'Unknown scheme {uri_parsed.scheme}. Configured schemes: {list(roots.keys())}'
+            )
+        
+        root_path = roots[uri_parsed.scheme]
+        local_file_path = f"{root_path}/{uri_parsed.netloc}{uri_parsed.path}"
+        
+        return rw.read_local_file(local_file_path, **kwargs)
 
     def write(self, objs, **kwargs):
-        kwargs = self._write_args(kwargs)
-        return rw.write_virtual_file(self.uri, objs, **kwargs)
+        write_args = self._write_args(kwargs)
+
+        uri_parsed = urlparse(self.uri)
+        roots = write_args.get('roots', {})
+
+        root_path = roots[uri_parsed.scheme]
+        local_file_path = f"{root_path}/{uri_parsed.netloc}{uri_parsed.path}"
+
+        return rw.write_local_file(local_file_path, objs, **write_args)
 
 
 class LocalResolver(Resolver):
