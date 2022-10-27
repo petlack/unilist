@@ -1,36 +1,5 @@
-from urllib.parse import urlparse
-
-from unilist.utils import get_ext
-
-from unilist.resolvers import (
-    HTTPResolver,
-    S3Resolver,
-    VirtualResolver,
-    LocalResolver,
-)
-
-from unilist.transformers import (
-    JsonlTransformer,
-    PlaintextTransformer,
-)
-
-
-def identify_uri(uri):
-    parsed_uri = urlparse(uri)
-    if parsed_uri.scheme in ['http', 'https']:
-        return HTTPResolver(uri, Unilist._config.get('http', {}))
-    if parsed_uri.scheme == 's3':
-        return S3Resolver(uri, Unilist._config.get('s3', {}))
-    if parsed_uri.scheme:
-        return VirtualResolver(uri, Unilist._config.get('virtual', {}))
-    return LocalResolver(uri, Unilist._config.get('local', {}))
-
-
-def identify_transformer(uri):
-    ext, compress = get_ext(uri)
-    if ext == 'jsonl':
-        return JsonlTransformer(Unilist._config.get('jsonl', {})), compress
-    return PlaintextTransformer(Unilist._config.get('txt', {})), compress
+from unilist.resolvers import identify_resolver
+from unilist.transformers import identify_transformer
 
 
 class Unilist:
@@ -38,8 +7,8 @@ class Unilist:
 
     def __init__(self, uri):
         self.uri = uri
-        self.transformer, self.compress = identify_transformer(uri)
-        self.resolver = identify_uri(uri)
+        self.transformer, self.compress = identify_transformer(uri, Unilist._config)
+        self.resolver = identify_resolver(uri, Unilist._config)
         self.resolver.compress = self.compress
 
     def __iter__(self):

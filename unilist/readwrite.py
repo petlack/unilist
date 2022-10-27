@@ -7,11 +7,19 @@ from unilist.errors import UnknownScheme, Unsupported
 from unilist.utils import file_exists, ensure_parent_dir
 
 
-def download_s3_file(uri, root_path, aws_bin):
-    local_file_path = f"{root_path}/{uri.lstrip('s3://')}"
-    if not file_exists(local_file_path):
-        os.system(f'{aws_bin} s3 cp {uri} {local_file_path} --no-progress')
-    return local_file_path
+def download_s3_cmd(uri, local_path, aws_bin):
+    os.system(f'{aws_bin} s3 cp {uri} {local_path} --no-progress')
+
+
+def download_s3_boto3(uri, local_path, s3):
+    parsed_uri = urlparse(uri)
+    bucket = parsed_uri.netloc
+    key = parsed_uri.path.lstrip('/')
+    try:
+        ensure_parent_dir(local_path)
+        s3.Object(bucket, key).download_file(local_path)
+    except Exception as error:
+        print(error)
 
 
 def read_http_file(url, **kwargs):
@@ -31,12 +39,7 @@ def read_virtual_file(uri, roots={'file': '/'}, **kwargs):
     return read_local_file(local_file_path, **kwargs)
 
 
-def read_s3_file(uri, root_path='.', aws_bin='aws', **kwargs):
-    local_file_path = download_s3_file(uri, root_path, aws_bin)
-    return read_local_file(local_file_path, **kwargs)
-
-
-def read_local_file(path, compress=False):
+def read_local_file(path, compress=False, **_):
     if not file_exists(path) or not os.path.isfile(path):
         return []
     open_fn = gzip.open if compress else open
