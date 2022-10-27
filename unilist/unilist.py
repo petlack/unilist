@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from unilist.utils import get_ext
 
 from unilist.jsonl import JsonlTransformer
+from unilist.csv import CsvTransformer
 from unilist.plaintext import PlaintextTransformer
 
 from unilist.s3 import S3Resolver
@@ -15,6 +16,8 @@ def identify_transformer(uri, config):
     ext, compress = get_ext(uri)
     if ext == 'jsonl':
         return JsonlTransformer(config.get('jsonl', {})), compress
+    elif ext == 'csv':
+        return CsvTransformer(config.get('csv', {})), compress
     return PlaintextTransformer(config.get('txt', {})), compress
 
 
@@ -33,7 +36,11 @@ class Unilist:
     _config = {
         'http': {
             'encoding': 'utf-8',
-        }
+        },
+        'csv': {
+            'header': True,
+            'delim': ',',
+        },
     }
 
     def __init__(self, uri):

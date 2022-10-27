@@ -22,6 +22,14 @@ class TestLocal:
         ]
         assert (list(Unilist('./tests/test_data/sizes.jsonl.gz')) == sizes)
 
+    def test_valid_csv_file(self):
+        fruits = [
+            {'type': 'apples', 'count': '7'},
+            {'type': 'pears', 'count': '4'},
+            {'type': 'bananas', 'count': '5'},
+        ]
+        assert (list(Unilist('./tests/test_data/fruits.csv')) == fruits)
+
     def test_valid_jsonl_file(self):
         fruits = [
             {'type': 'apples', 'count': 7},
